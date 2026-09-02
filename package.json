@@ -1,0 +1,47 @@
+{
+  "name": "solid-masterclass-api",
+  "version": "1.0.0",
+  "description": "Workshop de SOLID em Node.js: criar usuário com persistência e notificação por canal.",
+  "author": "Ricardo Leão",
+  "license": "MIT",
+  "keywords": ["solid", "workshop", "nodejs", "typescript", "fastify"],
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/resources/api.ts",
+    "start": "tsx src/resources/api.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "db:up": "docker compose up -d",
+    "db:migrate": "drizzle-kit push"
+  },
+  "packageManager": "pnpm@11.25.0",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.25.0",
+      "onFail": "download"
+    }
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.8.1",
+    "@scalar/fastify-api-reference": "^1.67.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.12.1",
+    "fastify-type-provider-zod": "^7.0.0",
+    "pg": "^8.23.0",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "drizzle-kit": "^0.31.10",
+    "supertest": "^7.2.2",
+    "tsx": "^4.21.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}
