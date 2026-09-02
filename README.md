@@ -1,29 +1,10 @@
-# Solid Masterclass API
+# solid-masterclass-api
 
-Workshop em Node.js + TypeScript para praticar os princípios **SOLID**
-criando um usuário, salvando no Postgres e avisando por e-mail, SMS ou WhatsApp.
+Fiz este workshop pra praticar SOLID.
+É uma API que cria usuário, salva no Postgres e "notifica" por
+e-mail, SMS ou WhatsApp (só um `console.log`, não manda mensagem de verdade).
 
-Feito para quem está começando: o código é propositalmente pequeno.
-Cada pasta tem um motivo.
-
-## O que você aprende
-
-| Princípio | Onde ver no código |
-|---|---|
-| **S** — uma responsabilidade | `CreateUser` só cadastra. `api.ts` só fala HTTP. |
-| **O** — aberto para extensão | Canal novo = nova classe em `NotifierGateway.ts` + um `case` na factory. |
-| **L** — substituível | E-mail, SMS e WhatsApp implementam a mesma interface e se comportam igual. |
-| **I** — interface pequena | `UserRepository` só tem `create` e `findByEmail`. |
-| **D** — depender de abstração | `CreateUser` recebe interfaces. Drizzle e bcrypt ficam em `resources/`. |
-
-## Stack
-
-- Fastify + Zod (HTTP e validação)
-- Drizzle + PostgreSQL (banco)
-- Vitest (testes)
-- Docker Compose (Postgres local)
-
-## Como rodar
+## Rodar
 
 ```bash
 cp .env.example .env
@@ -34,10 +15,8 @@ pnpm test
 pnpm dev
 ```
 
-- API: http://localhost:8080
-- Docs: http://localhost:8080/docs
-
-Exemplo de cadastro:
+API: http://localhost:8080
+Docs: http://localhost:8080/docs
 
 ```bash
 curl -X POST http://localhost:8080/user \
@@ -52,61 +31,31 @@ curl -X POST http://localhost:8080/user \
   }'
 ```
 
-## Arquitetura
+## SOLID neste repo
 
-```
-src/
-  application/                 # regras de negócio (não conhece Fastify nem Drizzle)
-    entities/User.ts
-    errors/
-    use-cases/CreateUser.ts    # S — caso de uso
-    repositories/              # D — interface do banco
-    services/                  # D — interface do hash
-    notifiers/                 # O, L, I — interfaces de notificação
-  resources/                   # implementações concretas (infra)
-    api.ts
-    DrizzleUserRepository.ts
-    BcryptPasswordHasher.ts
-    NotifierGateway.ts
-    NotifierStrategyFactory.ts
-  db/
-```
+- **S:** `CreateUser` não mexe com HTTP. A rota fica no `api.ts`.
+- **O:** canal novo (tipo Telegram) = outra strategy + um `case` na factory.
+- **L:** e-mail, SMS e WhatsApp implementam a mesma interface e se comportam igual.
+- **I:** `UserRepository` só tem `create` e `findByEmail`.
+- **D:** `CreateUser` recebe interface, não o Drizzle direto.
 
-A seta de dependência aponta para dentro:
+O teste do `CreateUser` não precisa de banco. O da API precisa do Docker ligado.
 
-```
-api.ts  →  CreateUser  →  interfaces
-                ↑
-         resources implementam
-```
+## Exercício
 
-## Como estender (exercício)
-
-Para adicionar o canal **Telegram**:
+Pra adicionar Telegram:
 
 1. Criar `TelegramNotifierStrategy implements NotifierStrategy`
-2. Registrar um `case "telegram"` em `NotifierStrategyFactory`
+2. Colocar um `case "telegram"` em `NotifierStrategyFactory`
 3. Incluir `"telegram"` no enum do Zod em `api.ts`
 
-O `CreateUser` **não muda**. Esse é o O do SOLID.
+O `CreateUser` não muda. Esse é o O.
 
-## Testes
-
-- `src/application/use-cases/CreateUser.test.ts` — unitário, sem banco.
-  Usa repositório, hasher e notifier falsos. É assim que o D fica testável.
-- `src/resources/NotifierGateway.test.ts` — as 3 strategies são substituíveis.
-- `src/api.test.ts` — integração HTTP + Postgres. Precisa do Docker ligado.
-
-```bash
-pnpm test          # todos
-pnpm test:watch    # enquanto você edita
-```
-
-## O que ficou de fora de propósito
+## O que eu não fiz de propósito
 
 - autenticação / JWT
-- envio real de e-mail ou SMS (aqui só tem `console.log`)
-- CRUD completo de usuário
-- filas, cache, clean architecture pesada
+- envio real de e-mail ou SMS
+- CRUD completo
+- fila, cache, clean architecture pesada
 
-O objetivo é enxergar o SOLID, não montar um produto.
+Queria ver o SOLID, não montar um produto.
