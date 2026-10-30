@@ -35,3 +35,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Serena MCP tooling
 .serena
+
+# pnpm store local
+.pnpm-store
