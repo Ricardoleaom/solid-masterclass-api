@@ -1,5 +1,7 @@
 # solid-masterclass-api
 
+[![ci](https://github.com/Ricardoleaom/solid-masterclass-api/actions/workflows/ci.yml/badge.svg)](https://github.com/Ricardoleaom/solid-masterclass-api/actions/workflows/ci.yml)
+
 Fiz este workshop pra praticar SOLID.
 É uma API que cria usuário, salva no Postgres e "notifica" por
 e-mail, SMS ou WhatsApp (só um `console.log`, não manda mensagem de verdade).
@@ -39,7 +41,12 @@ curl -X POST http://localhost:8080/user \
 - **I:** `UserRepository` só tem `create` e `findByEmail`.
 - **D:** `CreateUser` recebe interface, não o Drizzle direto.
 
-O teste do `CreateUser` não precisa de banco. O da API precisa do Docker ligado.
+O teste do `CreateUser` não precisa de banco. Os da API e do repositório
+precisam do Docker ligado. O CI roda tudo a cada push.
+
+O e-mail único quem garante é o banco: se dois cadastros iguais chegam ao
+mesmo tempo, o `DrizzleUserRepository` traduz o conflito em
+`EmailAlreadyInUseError` e a API devolve 409, não 500.
 
 ## Exercício
 
