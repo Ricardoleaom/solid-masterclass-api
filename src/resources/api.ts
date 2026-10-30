@@ -42,6 +42,13 @@ export async function buildApp() {
     configuration: { theme: "saturn" },
   });
 
+  // D — único lugar que conhece as classes concretas; o CreateUser só vê interfaces.
+  const createUser = new CreateUser(
+    new DrizzleUserRepository(),
+    new BcryptPasswordHasher(),
+    new NotifierStrategyFactory(),
+  );
+
   app.post(
     "/user",
     {
@@ -49,9 +56,9 @@ export async function buildApp() {
         tags: ["users"],
         summary: "Create a user",
         body: z.object({
-          name: z.string(),
+          name: z.string().trim().min(1),
           email: z.string().email(),
-          age: z.number(),
+          age: z.number().int().min(0).max(150),
           password: z.string().min(8),
           passwordConfirmation: z.string().min(8),
           marketingChannel: z.enum(["email", "sms", "whatsapp"]).optional(),
@@ -78,12 +85,6 @@ export async function buildApp() {
         passwordConfirmation,
         marketingChannel,
       } = request.body;
-
-      const createUser = new CreateUser(
-        new DrizzleUserRepository(),
-        new BcryptPasswordHasher(),
-        new NotifierStrategyFactory(),
-      );
 
       try {
         const output = await createUser.execute({

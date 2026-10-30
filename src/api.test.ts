@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
+import { eq } from "drizzle-orm";
 import { buildApp } from "./resources/api";
 import { usersTable } from "./db/schema";
 import { db } from "./db/client";
+
 let app: Awaited<ReturnType<typeof buildApp>>;
 
 beforeAll(async () => {
@@ -11,10 +13,6 @@ beforeAll(async () => {
 }, 30_000);
 afterAll(async () => {
   await app.close();
-});
-
-beforeEach(async () => {
-  await db.delete(usersTable);
 });
 
 const validInput = (overrides: Record<string, unknown> = {}) => ({
@@ -51,7 +49,10 @@ describe("POST /user", () => {
     const input = validInput();
     await request(app.server).post("/user").send(input);
 
-    const [row] = await db.select().from(usersTable);
+    const [row] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, input.email));
     expect(row?.password).toBeDefined();
     expect(row?.password).not.toBe(input.password);
   });
@@ -71,6 +72,17 @@ describe("POST /user", () => {
 
     expect(res.status).toBe(409);
     expect(res.body.error).toBe("E-mail já cadastrado");
+  });
+
+  it("deve retornar 409, e não 500, para cadastros simultâneos com o mesmo e-mail", async () => {
+    const input = validInput();
+    const responses = await Promise.all([
+      request(app.server).post("/user").send(input),
+      request(app.server).post("/user").send(input),
+    ]);
+
+    const statuses = responses.map((res) => res.status).sort();
+    expect(statuses).toEqual([201, 409]);
   });
 
   it("deve retornar 400 para um e-mail inválido", async () => {
@@ -93,6 +105,25 @@ describe("POST /user", () => {
     const res = await request(app.server)
       .post("/user")
       .send(validInput({ age: "thirty" }));
+
+    expect(res.status).toBe(400);
+  });
+
+  it.each([
+    ["negativa", -1],
+    ["fracionária", 30.5],
+  ])("deve retornar 400 para idade %s", async (_, age) => {
+    const res = await request(app.server)
+      .post("/user")
+      .send(validInput({ age }));
+
+    expect(res.status).toBe(400);
+  });
+
+  it("deve retornar 400 para nome vazio", async () => {
+    const res = await request(app.server)
+      .post("/user")
+      .send(validInput({ name: "   " }));
 
     expect(res.status).toBe(400);
   });
